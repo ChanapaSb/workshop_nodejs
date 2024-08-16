@@ -18,10 +18,10 @@ const orderSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    customerName: {
+   /*  customerName: {
         type: String,
         required: true
-    }
+    } */
 }, {
     timestamps: true
 });

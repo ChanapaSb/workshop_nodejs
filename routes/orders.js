@@ -7,7 +7,7 @@ const productSchema = require('../models/product')
 //เพิ่ม order
 router.post('/api/v1/products/:id/orders', async function(req, res, next) {
     const { id } = req.params; // product id
-    const { quantity, customerName } = req.body;
+    const { quantity} = req.body;
 
     try {
         // check product
@@ -37,7 +37,6 @@ router.post('/api/v1/products/:id/orders', async function(req, res, next) {
             product: id, // ใช้ ObjectId ของผลิตภัณฑ์ที่อ้างอิง
             quantity,
             totalPrice,
-            customerName
         });
         
         //reduce the number of stock
@@ -63,6 +62,8 @@ router.post('/api/v1/products/:id/orders', async function(req, res, next) {
 router.get('/api/v1/orders', async function(req, res, next) {
     try {
     const product = await orderSchema.find({})
+    .populate('product', 'name') // Populate only the 'name' field from 'products'
+    .exec();
 
     if (product.length === 0) {
         return res.status(200).json({
@@ -89,10 +90,12 @@ router.get('/api/v1/orders', async function(req, res, next) {
 //แสดง order ทั้งหมดของ product นั้นๆ
 router.get('/api/v1/products/:id/orders', async function(req, res, next) {
     const { id } = req.params; // product id
+   
 
     try {
         // ค้นหาคำสั่งซื้อทั้งหมดที่มี product id ตรงกับที่ส่งมา
-        const orders = await orderSchema.find({ product: id });
+        //const orders = await orderSchema.find({ product: id });
+        const orders = await orderSchema.find({ product: id }).populate('product', 'name');
         if (orders.length === 0) {
             return res.status(404).json({
                 status: 404,

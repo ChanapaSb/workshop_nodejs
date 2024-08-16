@@ -5,10 +5,9 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    category: {
+    detail: {
         type: String,
         required: true,
-        enum: ['dessert', 'drink'], // กำหนดประเภทของสินค้า
     },
     price: {
         type: Number,
@@ -18,6 +17,10 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: 'baht'
     },
+    imageUrl: { 
+        type: String,
+        required: true,
+    }, 
     stock: {
         type: Number,
         required: true,

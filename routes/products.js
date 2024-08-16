@@ -1,15 +1,38 @@
 var express = require('express');
 var router = express.Router();
 
+//อัพโหลดไฟล์
+const multer = require('multer')
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/images')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname)
+  }
+})
+const upload = multer({ storage: storage })
 //เพิ่ม product
 const productSchema = require('../models/product')
-router.post('/api/v1/products', async function(req, res, next) {
-    const { name, category, price, stock} = req.body; try{
+router.post('/api/v1/products', upload.single('imageUrl'), async function(req, res, next) {
+const { name, detail, price, stock} = req.body; 
+      if (!req.file) {
+      return res.status(400).json({
+          status: 400,
+          message: "Image file is required",
+          success: false
+      });
+  }
+ 
+  const imageUrl = `/images/${req.file.filename}`;  // สร้าง URL สำหรับรูปภาพ 
+    
+    try{
       const product = await productSchema.create({
         name, 
-        category, 
+        detail, 
         price,
-        stock
+        stock,
+        imageUrl
       });
       res.status(201).json({ 
         status: 201,
@@ -27,14 +50,17 @@ router.post('/api/v1/products', async function(req, res, next) {
     });
     
     //แก้ไข product
-    router.put('/api/v1/products/:id', async function(req, res, next) {
+    router.put('/api/v1/products/:id', upload.single('imageUrl'), async function(req, res, next) {
         const { id } = req.params; 
-        const { name, category, price, stock } = req.body;
+        const { name, detail, price, stock } = req.body;
+       
+        imageUrl = `/images/${req.file.filename}`; // สร้าง URL สำหรับรูปภาพใหม่
+      
 
         try {
             const product = await productSchema.findByIdAndUpdate(
                 id,
-                { name, category, price, stock},             
+                { name, detail, price, stock, imageUrl},             
                 { new: true, runValidators: true } // new: true จะให้คืนค่าเอกสารที่อัปเดตแล้ว, runValidators: true ใช้การตรวจสอบค่าใหม่
             );
 
@@ -47,9 +73,10 @@ router.post('/api/v1/products', async function(req, res, next) {
             } 
              // อัปเดตฟิลด์ที่มีการส่งเข้ามาเท่านั้น
         if (name !== undefined) product.name = name;
-        if (category !== undefined) product.category = category;
+        if (detail !== undefined) product.detail = detail;
         if (price !== undefined) product.price = price;
         if (stock !== undefined) product.stock = stock;
+        if (imageUrl !== undefined) product.imageUrl = imageUrl;
 
         // บันทึกการอัปเดต
         const updatedProduct = await product.save();
